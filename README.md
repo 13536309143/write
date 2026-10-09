@@ -100,18 +100,75 @@ If only source files were downloaded, run `.venv/bin/python prepare_data.py` bef
 
 ### Windows / NVIDIA CUDA
 
-Use a supported 64-bit Python environment; the commands below use Python 3.12 and the CUDA 12.8 wheel index. Check the [official PyTorch installation selector](https://pytorch.org/get-started/locally/) for compatibility with your NVIDIA driver. PyTorch is installed separately from `requirements-windows.txt`.
+**Reported target machine (2026-10-09; installation and training are not yet verified on this machine):**
+
+| Item | Reported value |
+|---|---|
+| Project directory | `E:\write` |
+| Python | 3.14.7, 64-bit |
+| GPU | NVIDIA GeForce RTX 4070 family; full model name is truncated in the supplied output |
+| VRAM | 8,188 MiB total; 5,209 MiB in use at capture time |
+| NVIDIA driver | 616.64 |
+| Local CUDA Toolkit (`nvcc`) | 13.4.92 |
+
+Use the existing standard Python 3.14 environment. The version command is `python --version`, with two hyphens. The installation below pins **PyTorch 2.11.0 + torchvision 0.26.0, CUDA 12.8**: this is an [official version pairing](https://pytorch.org/get-started/previous-versions/), and both the [torch](https://download.pytorch.org/whl/cu128/torch/) and [torchvision](https://download.pytorch.org/whl/cu128/torchvision/) indexes list Python 3.14 Windows wheels. This is a specific installation choice, not a claim to be the latest release.
+
+The CUDA Toolkit reported by `nvcc`, driver capability reported by `nvidia-smi`, and PyTorch's CUDA runtime are separate versions. A newer NVIDIA driver supports an older CUDA runtime through [backward compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/why-cuda-compatibility.html). Keep the installed Toolkit; this project uses prebuilt wheels and does not compile CUDA extensions. Do not change the package index to `cu134` just because the local Toolkit is 13.4. Use the [official installation selector](https://pytorch.org/get-started/locally/) if choosing another package combination.
+
+In PowerShell, from the project directory, install without activating the environment:
 
 ```powershell
-py -3.12 -m venv .venv-win
+cd E:\write
+python --version
+python -m venv .venv-win
 .\.venv-win\Scripts\python.exe -m pip install --upgrade pip
-.\.venv-win\Scripts\python.exe -m pip install "torch>=2.5,<3" "torchvision>=0.20,<1" --index-url https://download.pytorch.org/whl/cu128
+.\.venv-win\Scripts\python.exe -m pip install "torch==2.11.0" "torchvision==0.26.0" --index-url https://download.pytorch.org/whl/cu128
 .\.venv-win\Scripts\python.exe -m pip install -r requirements-windows.txt
-.\.venv-win\Scripts\python.exe check_environment.py --device cuda
-.\.venv-win\Scripts\python.exe train.py --config configs/windows_cuda.yaml
+.\.venv-win\Scripts\python.exe -m pip check
 ```
 
-If using source files, run `.\.venv-win\Scripts\python.exe prepare_data.py` before the environment check. This configuration requires CUDA, uses FP16 AMP, and starts a new run in `runs/windows_cuda` without loading Mac weights. See the [Windows training guide](docs/Windows训练.md) for setup, memory tuning, and recovery.
+PyTorch is installed separately from `requirements-windows.txt`; the Mac `requirements.txt` is not the Windows installation recipe. Copy the entire prepared dataset into `data/processed/`. If using source files, run `.\.venv-win\Scripts\python.exe prepare_data.py` before checking the environment.
+
+Verify the full GPU name, installed runtime, actual CUDA computation, and dataset paths:
+
+```powershell
+nvidia-smi --query-gpu=name,memory.total,memory.used,driver_version --format=csv
+.\.venv-win\Scripts\python.exe -c "import torch; print('torch:', torch.__version__); print('CUDA runtime:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available())"
+.\.venv-win\Scripts\python.exe check_environment.py --device cuda
+```
+
+Expected package/runtime values are `2.11.0+cu128` and `12.8`; CUDA availability should be `True`, and the device check should report `gpu_kernel_check: passed`. Different numbers from the local Toolkit are expected. The supplied system output alone does not prove PyTorch can execute CUDA kernels.
+
+**Starting point for approximately 8 GB VRAM:** close unnecessary GPU applications first. At capture time only about 2.9 GiB remained free, so total VRAM is not the available training budget. Copy the default configuration for a separate experiment:
+
+```powershell
+Copy-Item configs\windows_cuda.yaml configs\windows_8gb.yaml
+```
+
+Before starting a fresh run, edit these fields in `configs/windows_8gb.yaml`, retaining the other settings:
+
+```yaml
+run_dir: runs/windows_8gb
+batch_size: 8
+accumulation: 8
+```
+
+Keep `precision: fp16` and `image_size: 128`; the effective batch remains 64. This is a conservative starting point, not a guarantee of fitting. If CUDA reports out-of-memory, reduce to `batch_size: 4` and `accumulation: 16` before a new run. Batch and accumulation changes cannot be applied while resuming an existing checkpoint.
+
+Run a short pipeline check in a separate output directory, then start training from random initialization:
+
+```powershell
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml --run-dir runs/windows_8gb_smoke --smoke-steps 8
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml
+```
+
+The smoke checkpoint is for diagnostics and is rejected by normal inference. If worker startup fails, add `--workers 0` to the smoke command to diagnose it. After an interrupted formal run has saved successfully, resume with:
+
+```powershell
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml --resume runs/windows_8gb/last.pt
+```
+
+The generic `configs/windows_cuda.yaml` remains available with batch 16 and accumulation 4, outputting to `runs/windows_cuda`. For the configuration above, use `runs/windows_8gb/best.pt` for evaluation and inference. See the [Windows training guide](docs/Windows训练.md) for additional setup and recovery details.
 
 <a id="training"></a>
 
@@ -154,6 +211,14 @@ Evaluate the complete independent test set, classify one image, or start the loc
 ```
 
 On Windows, replace `.venv/bin/python` with `.\.venv-win\Scripts\python.exe` and use `runs/windows_cuda/best.pt` and `runs/windows_cuda/test_metrics.json`. Open [the local page](http://127.0.0.1:7860) after starting `app.py`. Prediction supports `--group chinese` when the character group is known.
+
+For the 8 GB configuration described above, use its own checkpoint and report directory:
+
+```powershell
+.\.venv-win\Scripts\python.exe evaluate.py --checkpoint runs/windows_8gb/best.pt --output runs/windows_8gb/test_metrics.json --device cuda
+.\.venv-win\Scripts\python.exe predict.py path/to/glyph.png --checkpoint runs/windows_8gb/best.pt --device cuda
+.\.venv-win\Scripts\python.exe app.py --checkpoint runs/windows_8gb/best.pt --device cuda
+```
 
 Evaluation reports Top-1, Top-5, macro Top-1, Chinese/digit/uppercase/lowercase metrics, and confusion pairs. The complete test set has 870,895 images. `--limit` produces a subset check and must be labeled as such.
 

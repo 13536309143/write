@@ -100,18 +100,75 @@ python3 -m venv .venv
 
 ### Windows / NVIDIA CUDA
 
-使用受支持的 64 位 Python 环境；以下命令采用 Python 3.12 与 CUDA 12.8 的 wheel 索引。请通过 [PyTorch 官方安装选择器](https://pytorch.org/get-started/locally/) 核对 NVIDIA 驱动兼容性。PyTorch 与 `requirements-windows.txt` 中的依赖分开安装。
+**目标电脑提供的配置（2026-10-09；尚未在该电脑完成安装与训练验证）：**
+
+| 项目 | 提供的数值 |
+|---|---|
+| 项目目录 | `E:\write` |
+| Python | 3.14.7，64 位 |
+| GPU | NVIDIA GeForce RTX 4070 系列；提供的输出截断了完整型号 |
+| 显存 | 总计 8,188 MiB；截图时已使用 5,209 MiB |
+| NVIDIA 驱动 | 616.64 |
+| 本机 CUDA Toolkit（`nvcc`） | 13.4.92 |
+
+沿用现有的标准 Python 3.14 环境。版本检查命令为 `python --version`，需要两个短横线。以下安装固定为 **PyTorch 2.11.0 + torchvision 0.26.0，CUDA 12.8**：这是[官方版本配对](https://pytorch.org/get-started/previous-versions/)，且 [torch](https://download.pytorch.org/whl/cu128/torch/) 与 [torchvision](https://download.pytorch.org/whl/cu128/torchvision/) 索引均提供 Python 3.14 的 Windows wheel。这是明确选定的安装组合，不代表最新版本。
+
+`nvcc` 显示的 CUDA Toolkit、`nvidia-smi` 显示的驱动能力，以及 PyTorch 使用的 CUDA 运行时属于不同版本。较新的 NVIDIA 驱动通过[向后兼容](https://docs.nvidia.com/deploy/cuda-compatibility/why-cuda-compatibility.html)支持较旧的 CUDA 运行时。保留已安装的 Toolkit 即可；本项目使用预编译 wheel，不编译 CUDA 扩展。不要因为本机 Toolkit 是 13.4 就把安装索引改为 `cu134`。选择其他安装组合时使用[官方安装选择器](https://pytorch.org/get-started/locally/)。
+
+在 PowerShell 中进入项目目录，无需激活环境即可安装：
 
 ```powershell
-py -3.12 -m venv .venv-win
+cd E:\write
+python --version
+python -m venv .venv-win
 .\.venv-win\Scripts\python.exe -m pip install --upgrade pip
-.\.venv-win\Scripts\python.exe -m pip install "torch>=2.5,<3" "torchvision>=0.20,<1" --index-url https://download.pytorch.org/whl/cu128
+.\.venv-win\Scripts\python.exe -m pip install "torch==2.11.0" "torchvision==0.26.0" --index-url https://download.pytorch.org/whl/cu128
 .\.venv-win\Scripts\python.exe -m pip install -r requirements-windows.txt
-.\.venv-win\Scripts\python.exe check_environment.py --device cuda
-.\.venv-win\Scripts\python.exe train.py --config configs/windows_cuda.yaml
+.\.venv-win\Scripts\python.exe -m pip check
 ```
 
-使用原始文件时，请在环境检查前运行 `.\.venv-win\Scripts\python.exe prepare_data.py`。该配置要求 CUDA，使用 FP16 AMP，在 `runs/windows_cuda` 中新建训练，不加载 Mac 权重。安装、显存调整与恢复操作见 [Windows 训练说明](docs/Windows训练.md)。
+PyTorch 与 `requirements-windows.txt` 分开安装；Mac 的 `requirements.txt` 不作为 Windows 安装方案。将完整处理数据复制到 `data/processed/`。使用原始文件时，请在环境检查前运行 `.\.venv-win\Scripts\python.exe prepare_data.py`。
+
+检查完整显卡名称、已安装的运行时、实际 CUDA 运算与数据路径：
+
+```powershell
+nvidia-smi --query-gpu=name,memory.total,memory.used,driver_version --format=csv
+.\.venv-win\Scripts\python.exe -c "import torch; print('torch:', torch.__version__); print('CUDA runtime:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available())"
+.\.venv-win\Scripts\python.exe check_environment.py --device cuda
+```
+
+预期包版本与运行时为 `2.11.0+cu128`、`12.8`；CUDA 可用性应为 `True`，设备检查应报告 `gpu_kernel_check: passed`。它们与本机 Toolkit 版本不同是正常现象。仅凭提供的系统输出，还不能证明 PyTorch 已能执行 CUDA kernel。
+
+**约 8 GB 显存的起始设置：**先关闭不必要的 GPU 应用。截图时仅剩约 2.9 GiB 空闲，因此总显存不等于训练可用显存。复制默认配置，建立独立实验：
+
+```powershell
+Copy-Item configs\windows_cuda.yaml configs\windows_8gb.yaml
+```
+
+开始全新训练前，在 `configs/windows_8gb.yaml` 中修改以下字段，其余设置保留：
+
+```yaml
+run_dir: runs/windows_8gb
+batch_size: 8
+accumulation: 8
+```
+
+保留 `precision: fp16` 与 `image_size: 128`，有效 batch 仍为 64。这是较保守的起始设置，不保证一定能容纳。若 CUDA 报显存不足，在新训练前降低为 `batch_size: 4`、`accumulation: 16`。已有检查点续训时不能改变 batch 与累积次数。
+
+先在独立输出目录运行短流程检查，再从随机初始化开始训练：
+
+```powershell
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml --run-dir runs/windows_8gb_smoke --smoke-steps 8
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml
+```
+
+短流程检查点仅供诊断，正常推理会拒绝使用。若加载进程启动失败，可在短流程命令中添加 `--workers 0` 排查。正式训练中断并成功保存后，使用以下命令恢复：
+
+```powershell
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_8gb.yaml --resume runs/windows_8gb/last.pt
+```
+
+通用的 `configs/windows_cuda.yaml` 仍采用 batch 16、累积 4 次，输出到 `runs/windows_cuda`。上述配置评估与识别时使用 `runs/windows_8gb/best.pt`。更多安装与恢复细节见 [Windows 训练说明](docs/Windows训练.md)。
 
 <a id="training"></a>
 
@@ -154,6 +211,14 @@ py -3.12 -m venv .venv-win
 ```
 
 Windows 上将 `.venv/bin/python` 替换为 `.\.venv-win\Scripts\python.exe`，并使用 `runs/windows_cuda/best.pt` 与 `runs/windows_cuda/test_metrics.json`。启动 `app.py` 后打开[本地页面](http://127.0.0.1:7860)。已知字符属于汉字时，可在识别命令中添加 `--group chinese`。
+
+使用上述 8 GB 配置时，选择它自己的检查点与报告目录：
+
+```powershell
+.\.venv-win\Scripts\python.exe evaluate.py --checkpoint runs/windows_8gb/best.pt --output runs/windows_8gb/test_metrics.json --device cuda
+.\.venv-win\Scripts\python.exe predict.py path/to/glyph.png --checkpoint runs/windows_8gb/best.pt --device cuda
+.\.venv-win\Scripts\python.exe app.py --checkpoint runs/windows_8gb/best.pt --device cuda
+```
 
 评估报告包含 Top-1、Top-5、宏平均 Top-1、汉字/数字/大小写字母分组指标与混淆对。完整测试集包含 870,895 张图像。`--limit` 仅用于子集检查，必须明确标注。
 
