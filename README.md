@@ -1,10 +1,10 @@
-# HandwritingNet
+# GlyphWeave · 字织
 
-**A convolution–attention framework for handwritten character recognition, trained from scratch.**
+**Integrating Stroke and Structure for Handwritten Character Recognition.**
 
 English | [简体中文](README.zh-CN.md)
 
-HandwritingNet classifies **7,185 Chinese characters, 26 uppercase letters, 26 lowercase letters, and 10 digits: 7,247 classes in total**. It combines stroke gradients, hierarchical convolution, spatial attention, multi-scale fusion, and a cosine classifier. All learnable parameters are randomly initialized.
+GlyphWeave classifies **7,185 Chinese characters, 26 uppercase letters, 26 lowercase letters, and 10 digits: 7,247 classes in total**. It combines stroke gradients, hierarchical convolution, spatial attention, multi-scale fusion, and a cosine classifier. All learnable parameters are randomly initialized.
 
 The project implements an independent combination of established architectural components. Complete benchmark experiments are pending; no state-of-the-art claim is made. Reserved tables and figures appear in [Experimental results](#experiments).
 
@@ -19,6 +19,8 @@ The project implements an independent combination of established architectural c
 <a id="architecture"></a>
 
 ## Model architecture
+
+GlyphWeave combines *glyph*, meaning a character shape, with *weave*, reflecting the fusion of stroke details and spatial structure. Its Chinese name is **字织**. The current model implementation remains `HandwritingNet` in `handwriting/model.py`, with configuration identifier `handwriting_net`.
 
 The encoder uses residual depthwise convolution blocks with channel expansion and global response normalization (GRN), drawing on [ConvNeXt V2](https://github.com/facebookresearch/ConvNeXt-V2). Spatial attention operates on the final feature grid to model character structure at a manageable token count. Intermediate convolutional features, final convolutional features, and attention features are pooled and fused with learned weights.
 
@@ -285,8 +287,8 @@ The documentation check compares structure and shared technical content, not tra
 
 | Model | Parameters | Top-1 (%) | Top-5 (%) | Macro Top-1 (%) | Latency (ms/image) |
 |---|---:|---:|---:|---:|---:|
-| HandwritingNet default | 7,820,044 | — | — | — | — |
-| HandwritingNet larger | 14,053,588 | — | — | — | — |
+| GlyphWeave default | 7,820,044 | — | — | — | — |
+| GlyphWeave larger | 14,053,588 | — | — | — | — |
 | Matched-budget baseline | — | — | — | — | — |
 
 ### Character groups
