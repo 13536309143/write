@@ -1,10 +1,46 @@
-CASIA-HWDB/
-EMNIST/
-data/
-.venv/
-.venv-win/
+# Datasets and local experiment outputs
+/data/
+/CASIA-HWDB/
+/EMNIST/
+/runs/
+/work/
+
+# Model binaries, raw data, and separately distributed archives
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.gnt
+*.idx
+*.npy
+*.npz
+*.zip
+*.gz
+*.7z
+*.rar
+*.tar
+*.part
+
+# Python environments, caches, and build output
+.venv*/
+venv/
+env/
 __pycache__/
-*.pyc
-runs/
-work/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local configuration and operating-system metadata
+.env
+.env.*
+!.env.example
 .DS_Store
+Thumbs.db
+Desktop.ini

@@ -19,7 +19,7 @@ ZIP 内是原始 .gnt 灰度图像与标签数据，不是已经导出的 PNG。
 download_manifest.json 记录镜像文件大小和 SHA-256 校验码；download_results.json 记录下载结果。
 verification.json 记录实际样本与字符覆盖情况。
 chinese_characters.txt 是 7,185 个汉字的完整清单。
-chinese_character_counts.json 记录每个汉字的样本数。
+chinese_character_counts.json 记录每个汉字的样本数。23
 SHA256SUMS.txt 记录 10 个 ZIP 的 SHA-256 校验码。
 全部 ZIP 均已通过镜像 SHA-256 和 ZIP CRC 完整性验证，并完整扫描 GNT 样本记录。
 
@@ -38,4 +38,5 @@ EMNIST 原始 IDX 图像需要转置一次，已在数据加载器中处理。
 metadata.json 保存类别映射、划分统计与索引校验值；index.npy 为样本内存映射索引。
 原始 ZIP/GZ 文件保留，训练操作不会修改它们。
 
-自主神经网络、训练与识别操作见 README.md；详细结构见 docs/网络设计.md。
+自主神经网络、训练与识别操作见 README.md（英文）与 README.zh-CN.md（中文）；两份 README 后续同步维护。
+数据发布与打包要求见 docs/数据集.md；详细结构见 docs/网络设计.md。

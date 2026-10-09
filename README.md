@@ -1,120 +1,256 @@
-# 手写单字识别：自主网络，从零训练
+# HandwritingNet
 
-支持 **7,185 个汉字、26 个大写字母、26 个小写字母和 10 个数字，共 7,247 类**。已实现数据准备、Apple Silicon MPS / Windows 单卡 CUDA 训练、断点续训、独立测试、图片识别和本地上传页面。
+**A convolution–attention framework for handwritten character recognition, trained from scratch.**
 
-**Windows 从零重新训练：先看 [Windows 操作说明](docs/Windows训练.md)，使用 `configs/windows_cuda.yaml`，输出到 `runs/windows_cuda`。**
+English | [简体中文](README.zh-CN.md)
 
-网络为自行实现的 HandwritingNet：笔画梯度输入 → 四级卷积特征 → 全局结构注意力 → 多尺度融合 → 余弦分类器。借鉴公开研究中的模块，但没有加载任何预训练权重，也没有宣称新的学术原创或最优识别率。详细结构与调研见 [网络设计](docs/网络设计.md)。
+HandwritingNet classifies **7,185 Chinese characters, 26 uppercase letters, 26 lowercase letters, and 10 digits: 7,247 classes in total**. It combines stroke gradients, hierarchical convolution, spatial attention, multi-scale fusion, and a cosine classifier. All learnable parameters are randomly initialized.
 
-## 当前状态
+The project implements an independent combination of established architectural components. Complete benchmark experiments are pending; no state-of-the-art claim is made. Reserved tables and figures appear in [Experimental results](#experiments).
 
-- 原始数据保存在 `data/CASIA-HWDB/`、`data/EMNIST/`，已生成 `data/processed/` 索引。
-- 本机 `.venv` 已安装依赖，MPS 可用；完成真实样本梯度测试、多进程加载、模型保存/加载和续训检查。
-- Mac 已完成前 5 轮验证，第 5 轮验证子集 Top-1 94.11%、Top-5 98.99%，第 6 轮暂停进度保存在 `runs/mac/last.pt`；尚未完成独立测试。Windows 配置另开从零训练。
-- `runs/verification*/`、`runs/windows_smoke/` 只用于流程检查，默认识别程序会拒绝这些模型。
-- 默认配置约 782 万参数；扩大配置约 1,405 万参数。后者需要更多计算，准确率是否提高要实测。
+## Highlights
 
-## 开始训练
+- Stroke-aware input: grayscale images with fixed horizontal and vertical Sobel gradients.
+- Hierarchical encoding: large-kernel depthwise convolution and low-resolution spatial attention.
+- Shared preprocessing for training and inference, with aspect ratio preserved.
+- Apple Silicon MPS and single-GPU Windows CUDA training, EMA, mixed precision, and checkpoint recovery.
+- Auditable data splits and evaluation: overall, per-class, and character-group metrics.
 
-在终端运行：
+<a id="architecture"></a>
 
-```bash
-cd /Volumes/OUT/write
-.venv/bin/python train.py --config configs/mac.yaml
+## Model architecture
+
+The encoder uses residual depthwise convolution blocks with channel expansion and global response normalization (GRN), drawing on [ConvNeXt V2](https://github.com/facebookresearch/ConvNeXt-V2). Spatial attention operates on the final feature grid to model character structure at a manageable token count. Intermediate convolutional features, final convolutional features, and attention features are pooled and fused with learned weights.
+
+```mermaid
+flowchart TD
+    A[Single-character image] --> B[Aspect-preserving normalization]
+    B --> C[Grayscale + horizontal/vertical Sobel gradients]
+    C --> D[Hierarchical convolutional encoder]
+    D --> E[Spatial structure attention]
+    D --> F[Intermediate + final convolutional pooling]
+    E --> G[Learned multi-scale fusion]
+    F --> G
+    G --> H[LayerNorm + Dropout]
+    H --> I[Cosine classifier: 7247 classes]
 ```
 
-默认使用 MPS、FP32、物理 batch 16、梯度累积 4 次，有效 batch 64。每轮有放回抽取 250,000 个训练样本，最多 80 轮；**这里一轮不等于完整遍历 335 万训练样本**。类别采样对样本较少的类别适度加权。日志显示训练损失、速度、验证进度和准确率。
+| Configuration | Input | Parameters | Channels | Depths | Attention blocks |
+|---|---|---:|---|---|---:|
+| `mac.yaml` / `windows_cuda.yaml` | 128 × 128 | 7,820,044 | 40 / 80 / 160 / 320 | 2 / 2 / 6 / 2 | 2 |
+| `quality.yaml` | 160 × 160 | 14,053,588 | 48 / 96 / 192 / 384 | 2 / 3 / 8 / 3 | 3 |
 
-启动时会依次显示依赖加载、数据索引、网络初始化和数据加载器提示，首次批次还需初始化 GPU 运算。若终端出现 `^C` 和 `KeyboardInterrupt`，表示按下 `Ctrl+C` 取消了程序；发生在 `import torch` 时，训练尚未开始，也不会生成本次训练检查点。此时重新运行原命令即可；正常训练中断并保存后才需要 `--resume`。
+Parameter counts include the classification head. The larger configuration is an experimental option; improved accuracy must be established by measurement. See the [architecture notes](docs/网络设计.md) for module definitions and design rationale.
 
-首次在新环境安装或重新准备数据时：
+<a id="dataset-downloads"></a>
+
+## Data and downloads
+
+Dataset files and model checkpoints are distributed separately from this source repository. The release links below will be filled in after the corresponding artifacts are uploaded.
+
+<!-- DATASET_RELEASE_LINKS: update both READMEs when real release URLs are available. -->
+
+| Artifact | Contents | Download | Version / SHA-256 |
+|---|---|---|---|
+| Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | **Pending upload** | Pending |
+| Source data | CASIA-HWDB 1.0–1.2 and EMNIST ByClass files | **Pending upload** | Pending |
+| Trained model | Checkpoint, configuration, and evaluation report | **Pending experiments** | Pending |
+
+Upstream sources:
+
+- [EMNIST — NIST](https://www.nist.gov/itl/products-and-services/emnist-dataset): ByClass preserves uppercase and lowercase labels.
+- [CASIA-HWDB downloads](https://nlpr.ia.ac.cn/databases/handwriting/Download.html): offline isolated handwritten characters.
+- [CASIA mirror used for this project](https://huggingface.co/datasets/OrkaZeta/HWDB1/tree/main): a third-party source used when the original server was inaccessible.
+
+Dataset access and redistribution remain subject to the respective upstream terms, including the [CASIA agreement](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html).
+
+For a prepared release, extract the **entire** directory into `data/processed/`; the index alone is insufficient. For source files, restore `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset packaging and integrity](docs/数据集.md).
+
+| Split | Images | Classes |
+|---|---:|---:|
+| Training | 3,353,310 | 7,247 |
+| Validation | 374,648 | 7,247 |
+| Test | 870,895 | 7,247 |
+
+CASIA retains the official test set and holds out validation writers from the official training set; writers do not overlap across splits. EMNIST retains its official test set and uses class-stratified training/validation sampling; writer IDs are unavailable, so writer separation cannot be established for those two splits. Preparation removes 135 zero-size records and 1 blank image, excludes non-target symbols, and applies one transpose to EMNIST images during loading.
+
+<a id="quick-start"></a>
+
+## Quick start
+
+Clone the repository and download the dataset described above before training.
+
+```bash
+git clone https://github.com/13536309143/write.git
+cd write
+```
+
+### Apple Silicon / MPS
+
+Create an environment, install dependencies, check the device and data, then start training.
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python prepare_data.py
+.venv/bin/python check_environment.py --device auto
+.venv/bin/python train.py --config configs/mac.yaml
 ```
 
-原始压缩包保留，处理目录使用内存映射读取，避免将所有图像放入内存；当前处理目录约 23 GB。正常训练无需再次解压。
+If only source files were downloaded, run `.venv/bin/python prepare_data.py` before the environment check. MPS training uses FP32. A `KeyboardInterrupt` during `import torch` means startup was cancelled before training began; rerun the command.
 
-按 `Ctrl+C` 会保存已完成的优化器更新。继续时使用同一配置：
+### Windows / NVIDIA CUDA
+
+Use a supported 64-bit Python environment; the commands below use Python 3.12 and the CUDA 12.8 wheel index. Check the [official PyTorch installation selector](https://pytorch.org/get-started/locally/) for compatibility with your NVIDIA driver. PyTorch is installed separately from `requirements-windows.txt`.
+
+```powershell
+py -3.12 -m venv .venv-win
+.\.venv-win\Scripts\python.exe -m pip install --upgrade pip
+.\.venv-win\Scripts\python.exe -m pip install "torch>=2.5,<3" "torchvision>=0.20,<1" --index-url https://download.pytorch.org/whl/cu128
+.\.venv-win\Scripts\python.exe -m pip install -r requirements-windows.txt
+.\.venv-win\Scripts\python.exe check_environment.py --device cuda
+.\.venv-win\Scripts\python.exe train.py --config configs/windows_cuda.yaml
+```
+
+If using source files, run `.\.venv-win\Scripts\python.exe prepare_data.py` before the environment check. This configuration requires CUDA, uses FP16 AMP, and starts a new run in `runs/windows_cuda` without loading Mac weights. See the [Windows training guide](docs/Windows训练.md) for setup, memory tuning, and recovery.
+
+<a id="training"></a>
+
+## Training protocol
+
+The default Mac and Windows configurations share the following optimization settings.
+
+| Setting | Value |
+|---|---|
+| Optimizer / learning rate / weight decay | AdamW / 0.0005 / 0.05 |
+| Effective batch | 64 = 16 × 4 accumulation steps |
+| Sampling | 250,000 draws per epoch, with replacement; per-sample weight ∝ inverse square root of class frequency |
+| Schedule | 2 warmup epochs, cosine decay, up to 80 epochs |
+| Regularization | Label smoothing 0.05, DropPath, dropout, mild geometric augmentation |
+| EMA / gradient norm clipping | 0.999 / 1.0 |
+| Model selection / early stopping | Validation macro Top-1 of EMA weights / patience 12 |
+
+An epoch is a fixed sampling budget, **not a complete traversal of the training set**. The default validation subset contains 72,470 images, with 10 per class. Set `validation_limit: null` in a new experiment to use the full validation set. Select configurations on validation data; keep the test set for final evaluation.
+
+`last.pt` stores recovery state; `best.pt` stores the best validation-selected EMA checkpoint. Training saves every 1,000 successful optimizer updates, at epoch boundaries, and on a handled interruption. Resume with the same configuration:
 
 ```bash
 .venv/bin/python train.py --config configs/mac.yaml --resume runs/mac/last.pt
 ```
 
-`last.pt` 用于续训，`best.pt` 是按验证集各类别平均 Top-1 选择的 EMA 模型。每 1,000 次成功优化器更新和每轮结束会保存检查点。续训校验数据索引、类别顺序和训练配置；允许改变设备、加载进程、精度与路径，中途更改 batch、网络、轮数等参数会被拒绝。数据抽样顺序可恢复，但未保存全部随机数状态，续训的增强/Dropout 随机结果不保证逐位一致。
+Device, worker count, precision, and paths may change during recovery; incompatible architecture, batch, or schedule changes are rejected. Not all random-number-generator states are saved, so recovery does not guarantee bitwise reproducibility. CUDA AMP overflow skips optimizer, scheduler, and EMA updates together.
 
-若出现内存不足，开始新实验前把 `batch_size` 改为 8、`accumulation` 改为 8，保持有效 batch 64。加载进程消耗较高时降低 `workers`。新实验使用新目录，避免覆盖检查点：
+For a new experiment, choose a new output directory with `--run-dir`. The larger model uses `configs/quality.yaml`; evaluate its checkpoint explicitly rather than relying on the default path.
 
-```bash
-.venv/bin/python train.py --config configs/mac.yaml --run-dir runs/experiment2
-```
+<a id="evaluation"></a>
 
-扩大配置另开训练，从随机参数开始：
+## Evaluation and inference
 
-```bash
-.venv/bin/python train.py --config configs/quality.yaml
-```
-
-当前机器短流程测试约 28–59 张/秒，多进程启动对短测试影响明显；这些数值不能当成完整训练速度承诺。250,000 样本一轮仅训练部分按此范围约 71–149 分钟，还要加验证和读盘时间；长训练应预留数天，并保持电源、外置盘连接和系统唤醒。
-
-## 测试与识别
-
-训练完成后，先评估完整独立测试集：
+Evaluate the complete independent test set, classify one image, or start the local upload page:
 
 ```bash
-.venv/bin/python evaluate.py --checkpoint runs/mac/best.pt
-```
-
-结果保存在 `runs/mac/test_metrics.json`，包括整体 Top-1、Top-5、各类别平均 Top-1、汉字/数字/大小写字母分组准确率、易错字符和混淆对。默认测试全部 870,895 张图片；`--limit` 只做抽样检查，不能作为完整测试结果。
-
-识别一张图片：
-
-```bash
-.venv/bin/python predict.py /绝对路径/单字.png --checkpoint runs/mac/best.pt
-# 已知图片是汉字时可添加 --group chinese
-```
-
-启动本地上传页面：
-
-```bash
+.venv/bin/python evaluate.py --checkpoint runs/mac/best.pt --output runs/mac/test_metrics.json
+.venv/bin/python predict.py path/to/glyph.png --checkpoint runs/mac/best.pt
 .venv/bin/python app.py --checkpoint runs/mac/best.pt
 ```
 
-浏览器打开 <http://127.0.0.1:7860>。上传图片后显示识别结果和前 5 个候选；图片在内存处理。模型分数没有概率校准，不能理解为真实正确率。
+On Windows, replace `.venv/bin/python` with `.\.venv-win\Scripts\python.exe` and use `runs/windows_cuda/best.pt` and `runs/windows_cuda/test_metrics.json`. Open [the local page](http://127.0.0.1:7860) after starting `app.py`. Prediction supports `--group chinese` when the character group is known.
 
-输入必须是清晰的单个字符。支持黑白背景识别、透明背景和等比例归一化；照片请先裁剪，并尽量使用干净背景。整行文字、整页文档、范围外字符识别需要另外设计检测、分割或序列模型。某些手写 `O/0`、`l/I/1`、`C/c` 本身缺少可区分信息，单字模型无法凭空恢复上下文。
+Evaluation reports Top-1, Top-5, macro Top-1, Chinese/digit/uppercase/lowercase metrics, and confusion pairs. The complete test set has 870,895 images. `--limit` produces a subset check and must be labeled as such.
 
-扩大配置的评估/页面需显式指定 `runs/quality/best.pt`；评估可同时指定 `--output runs/quality/test_metrics.json`。
+Inputs should contain a single clearly cropped character. Whole lines, documents, out-of-vocabulary characters, and complex backgrounds require additional models or data. Scores are uncalibrated; visually ambiguous forms such as `O/0` and `l/I/1` may require context. Report character-group metrics because Chinese classes dominate the aggregate.
 
-## 数据划分与检查
+<a id="repository"></a>
 
-| 划分 | 图像数量 | 覆盖类别 |
-|---|---:|---:|
-| 训练 | 3,353,310 | 7,247 |
-| 验证 | 374,648 | 7,247 |
-| 测试 | 870,895 | 7,247 |
+## Repository layout and verification
 
-CASIA 保留官方测试集，从官方训练书写者中划出验证书写者，三个划分的书写者互不重叠。EMNIST 保留官方测试集，训练/验证按类别分层抽样；原始文件没有书写者 ID，无法证明 EMNIST 训练/验证按书写者隔离。
+```text
+write/
+├── handwriting/
+├── configs/
+├── docs/
+│   └── assets/
+├── scripts/check_readme_sync.py
+├── tests/
+├── prepare_data.py
+├── check_environment.py
+├── train.py
+├── evaluate.py
+├── predict.py
+├── app.py
+├── README.md
+├── README.zh-CN.md
+└── AGENTS.md
+```
 
-训练保留 CASIA 中目标汉字及英文字母/数字，排除其他符号；过滤 135 条零尺寸记录和 1 张空白图。EMNIST 原始 IDX 图像在加载时转置一次，已做方向预览检查。默认每轮验证 72,470 张分层子集，覆盖全部类别，避免每轮全量验证时间过长；如需全量验证，在新实验配置中设 `validation_limit: null`。
+`handwriting/` contains the model, dataset, preprocessing, runtime, and metrics. `configs/` defines reproducible runs. `docs/` contains architecture, platform, data, and experiment documentation. Datasets, environments, checkpoints, and local runs are excluded through `.gitignore`.
 
-运行必要的验证：
+English is the default README. The [Chinese README](README.zh-CN.md) must remain equivalent in content, structure, commands, links, and results. This policy is recorded in [AGENTS.md](AGENTS.md). Check documentation consistency and, with the prepared dataset installed, run the pipeline tests:
 
 ```bash
+python3 scripts/check_readme_sync.py
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-这些检查包含真实训练样本的小批次记忆测试，证明梯度和保存链路可用，**不等于泛化准确率**。
+The documentation check compares structure and shared technical content, not translation quality. Pipeline checks and tiny-batch fitting demonstrate implementation behavior, not generalization. CUDA-specific tests require an NVIDIA GPU; skipped tests are not CUDA validation. See the [GitHub publishing checklist](docs/GitHub发布.md).
 
-## 主要文件
+## References
 
-| 文件 | 用途 |
+- [ConvNeXt V2 — architectural inspiration and GRN](https://github.com/facebookresearch/ConvNeXt-V2)
+- [EMNIST — dataset source](https://www.nist.gov/itl/products-and-services/emnist-dataset)
+- [CASIA handwriting database — dataset source](https://nlpr.ia.ac.cn/databases/handwriting/home.html)
+- [PyTorch — framework and installation](https://pytorch.org/get-started/locally/)
+
+<a id="experiments"></a>
+
+## Experimental results — reserved
+
+**Complete experiments are pending.** Dashes denote unmeasured values. Interim validation observations are recorded separately in the [experiment log](docs/实验记录.md); they are not full-test results. Use the [experiment report template](docs/实验报告模板.md) when filling this section, and update both READMEs together.
+
+### Experimental setup
+
+| Item | Recorded value |
 |---|---|
-| `handwriting/model.py` | 自主网络与模块 |
-| `prepare_data.py`、`handwriting/data.py` | GNT/IDX 数据解析、划分、内存映射 |
-| `handwriting/images.py` | 训练和推理共用预处理 |
-| `train.py`、`configs/` | 训练、优化、EMA、断点恢复 |
-| `evaluate.py`、`predict.py`、`app.py` | 独立评估、命令行识别、本地上传 |
-| `docs/网络设计.md` | 结构、设计依据、研究来源和后续改进方法 |
+| Code commit / dataset release / index SHA-256 | Pending |
+| OS / Python / PyTorch / CUDA / driver | Pending |
+| GPU / VRAM / CPU / RAM | Pending |
+| Configuration / seeds / successful updates / sampling budget | Pending |
+| Checkpoint selection / evaluation split / image count | Pending |
+
+### Full-test results
+
+| Model | Parameters | Top-1 (%) | Top-5 (%) | Macro Top-1 (%) | Latency (ms/image) |
+|---|---:|---:|---:|---:|---:|
+| HandwritingNet default | 7,820,044 | — | — | — | — |
+| HandwritingNet larger | 14,053,588 | — | — | — | — |
+| Matched-budget baseline | — | — | — | — | — |
+
+### Character groups
+
+| Group | Test images | Top-1 (%) | Top-5 (%) | Main confusions |
+|---|---:|---:|---:|---|
+| Chinese | — | — | — | — |
+| Digits | — | — | — | — |
+| Uppercase | — | — | — | — |
+| Lowercase | — | — | — | — |
+
+### Ablation studies
+
+The following comparisons are planned; not all variants are implemented. Hold data splits, training budget, seed policy, and evaluation protocol constant.
+
+| Variant | Top-1 (%) | Macro Top-1 (%) | Parameters | Interpretation |
+|---|---:|---:|---:|---|
+| Full model | — | — | — | — |
+| Without Sobel input | — | — | — | — |
+| Without spatial attention | — | — | — | — |
+| Without multi-scale fusion | — | — | — | — |
+| Linear classification head | — | — | — | — |
+
+### Learning curves and qualitative examples
+
+Reserve this area for training/validation curves, confusion analysis, and correct/incorrect predictions. Include representative difficult characters and ambiguous letter/digit pairs. Report external-photo evaluation separately from the official test split. Timing measurements should specify hardware, precision, batch size, warmup, and device synchronization.
+
+<!-- EXPERIMENT_FIGURES: enable after real files exist; synchronize both READMEs.
+![Learning curves](docs/assets/learning-curves.png)
+![Confusion analysis](docs/assets/confusion-analysis.png)
+![Prediction examples](docs/assets/prediction-examples.png)
+-->
