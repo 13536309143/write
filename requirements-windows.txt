@@ -1,0 +1,6 @@
+# Install torch + torchvision from the official CUDA index first (see docs/Windows训练.md).
+# Keep CUDA packages out of this file so pip cannot replace them with another build.
+numpy>=2.0,<3
+Pillow>=11,<13
+PyYAML>=6.0,<7
+Flask>=3.1,<4

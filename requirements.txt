@@ -1,0 +1,7 @@
+# Reference versions used on the Mac. For Windows CUDA see requirements-windows.txt and docs/Windows训练.md.
+torch==2.14.1
+torchvision==0.29.1
+numpy==2.5.3
+Pillow==12.3.0
+PyYAML==6.0.3
+Flask==3.1.3

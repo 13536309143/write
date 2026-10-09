@@ -1,0 +1,10 @@
+CASIA-HWDB/
+EMNIST/
+data/
+.venv/
+.venv-win/
+__pycache__/
+*.pyc
+runs/
+work/
+.DS_Store

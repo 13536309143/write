@@ -1,0 +1,37 @@
+seed: 42
+data_dir: data/processed
+run_dir: runs/quality
+image_size: 160
+device: auto
+batch_size: 8
+workers: 4
+epochs: 100
+samples_per_epoch: 250000
+validation_limit: 72470
+accumulation: 8
+learning_rate: 0.0005
+weight_decay: 0.05
+warmup_epochs: 2
+label_smoothing: 0.05
+class_balance_power: 0.5
+grad_clip: 1.0
+ema_decay: 0.999
+patience: 12
+save_every_steps: 1000
+model:
+  name: handwriting_net
+  dims:
+  - 48
+  - 96
+  - 192
+  - 384
+  depths:
+  - 2
+  - 3
+  - 8
+  - 3
+  attention_blocks: 3
+  heads: 8
+  drop_path: 0.15
+  dropout: 0.1
+  edges: true
