@@ -21,16 +21,16 @@ git check-ignore data/processed/index.npy runs/mac/best.pt .venv/bin/python
 确认改动后，按实际文件选择暂存并查看：
 
 ```bash
-git add README.md README.zh-CN.md AGENTS.md .gitignore .gitattributes docs scripts
+git add README.md README.zh-CN.md LICENSE AGENTS.md .gitignore .gitattributes docs scripts
 git diff --cached --stat
 git diff --cached --check
 ```
 
-确认暂存内容再自行提交和推送。公开源码前应由项目所有者确定许可证；本次整理未代选许可证，也不改变数据集授权。
+确认暂存内容再自行提交和推送。源码与项目原创文档采用根目录的 [MIT 许可证](../LICENSE)；数据集及单独发布的模型检查点不属于该源码许可范围，第三方依赖保留各自许可证。
 
 ## 数据与实验发布
 
-数据单独上传，依照[数据集说明](数据集.md)附上版本和校验值。发布后在两份 README 的 `DATASET_RELEASE_LINKS` 位置同步填入真实下载链接，不使用本机路径或尚不存在的地址。
+数据单独上传，依照[数据集说明](数据集.md)附上版本和校验值。发布后在两份 README 的“数据与下载”部分同步填入真实下载链接，不使用本机路径或尚不存在的地址。
 
 首次 Windows CUDA 完整实验已经写入两份 README 末尾，原始记录存放在 `docs/experiments/windows_cuda_v1/`，图片存放在 `docs/assets/`。后续实验依据[报告模板](实验报告模板.md)补充，保留已完成与未完成实验的区别。模型附件通过 Release 单独发布，附配置、文件校验值及完整测试报告；原始记录缺失的训练代码提交不得事后补造。
 

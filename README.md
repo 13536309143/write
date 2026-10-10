@@ -52,7 +52,7 @@ Dataset files and model checkpoints are distributed separately from the source r
 
 | Artifact | Contents | Download | Version / SHA-256 |
 |---|---|---|---|
-| Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | **Not available** | — |
+| Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | [Hugging Face](https://huggingface.co/datasets/GeorgeWJJ/GlyphWeave) · [Baidu Netdisk](https://pan.baidu.com/s/1vDiqiz0qkBu2fWVgWQLwnA?pwd=v8ri) (access code: `v8ri`) | — |
 | Inference model | EMA weights and experiment records | [Inference ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-inference.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 | Full training checkpoint | Original best checkpoint and experiment records | [Training ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-training.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 
@@ -64,7 +64,7 @@ Upstream sources:
 
 Dataset access and redistribution remain subject to the respective upstream terms, including the [CASIA agreement](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html).
 
-Place the complete prepared dataset in `data/processed/`, including `metadata.json`, `index.npy`, and all referenced `raw/` files. To prepare the dataset from source files, place them in `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset preparation and integrity](docs/数据集.md).
+Hugging Face and Baidu Netdisk host the same prepared dataset; download from either source. Place the complete `processed/` directory in `data/processed/`, including `metadata.json`, `index.npy`, and all referenced `raw/` files. See [dataset preparation and integrity](docs/数据集.md).
 
 | Split | Images | Classes |
 |---|---:|---:|
@@ -102,16 +102,32 @@ cd GlyphWeave
 
 ### Apple Silicon / MPS
 
-Create an environment, install dependencies, check the device and data, then start training.
+The pinned dependencies in `requirements.txt` require the following environment:
+
+| Item | Requirement |
+|---|---|
+| Hardware / architecture | Apple Silicon, native `arm64` Python |
+| Operating system | macOS 14 or later |
+| Python | Standard CPython 3.12–3.14; Python 3.14.1 is excluded by torchvision |
+| Training backend / precision | MPS / FP32 |
+
+These requirements follow the published [PyTorch wheels](https://pypi.org/project/torch/2.14.1/#files), [torchvision metadata](https://pypi.org/project/torchvision/0.29.1/), and [NumPy metadata](https://pypi.org/project/numpy/2.5.3/). Use a native interpreter with the versions above; macOS Python installations are described in the [Python documentation](https://docs.python.org/3/using/mac.html).
+
+The commands below use Python 3.14. Check the operating system, Python version, and architecture (`arm64`), then create an environment, install dependencies, and verify MPS and the dataset before training:
 
 ```bash
-python3 -m venv .venv
+sw_vers -productVersion
+python3.14 --version
+python3.14 -c "import platform; print(platform.machine())"
+python3.14 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python check_environment.py --device auto
+.venv/bin/python -m pip check
+.venv/bin/python check_environment.py --device mps
 .venv/bin/python train.py --config configs/mac.yaml
 ```
 
-If using source data files, run `.venv/bin/python prepare_data.py` before the environment check. MPS training uses FP32.
+For Python 3.12 or 3.13, replace `python3.14` with the matching interpreter command. If using source data files, run `.venv/bin/python prepare_data.py` before the environment check. The check should report `device: mps` and `gpu_kernel_check: passed`.
 
 ### Windows / NVIDIA CUDA
 
@@ -247,6 +263,7 @@ GlyphWeave/
 ├── app.py
 ├── README.md
 ├── README.zh-CN.md
+├── LICENSE
 └── AGENTS.md
 ```
 
@@ -260,6 +277,10 @@ python3 scripts/check_readme_sync.py
 ```
 
 CUDA-specific tests require an NVIDIA GPU. Development and publishing procedures are documented in the [GitHub publishing guide](docs/GitHub发布.md).
+
+## License
+
+The source code and project-authored documentation are licensed under the [MIT License](LICENSE). Retain the copyright and license notices when redistributing them. Dataset files and separately distributed model checkpoints are outside the scope of this source-code license. Datasets retain their respective upstream terms, including the [CASIA agreement](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html); third-party dependencies retain their own licenses.
 
 ## References
 

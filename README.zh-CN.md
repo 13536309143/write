@@ -52,7 +52,7 @@ flowchart TD
 
 | 文件 | 内容 | 下载 | 版本 / SHA-256 |
 |---|---|---|---|
-| 处理后的数据集 | `metadata.json`、`index.npy` 及引用的全部 `raw/` 文件 | **暂未提供** | — |
+| 处理后的数据集 | `metadata.json`、`index.npy` 及引用的全部 `raw/` 文件 | [Hugging Face](https://huggingface.co/datasets/GeorgeWJJ/GlyphWeave) · [百度网盘](https://pan.baidu.com/s/1vDiqiz0qkBu2fWVgWQLwnA?pwd=v8ri)（提取码：`v8ri`） | — |
 | 推理模型 | EMA 权重与实验记录 | [推理 ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-inference.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 | 完整训练检查点 | 原始最佳检查点与实验记录 | [训练 ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-training.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 
@@ -64,7 +64,7 @@ flowchart TD
 
 数据集的获取和再分发仍遵循各上游条款，包括 [CASIA 使用协议](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html)。
 
-将完整处理数据放入 `data/processed/`，包含 `metadata.json`、`index.npy` 及引用的全部 `raw/` 文件。从原始数据准备时，将文件放入 `data/CASIA-HWDB/` 与 `data/EMNIST/`，安装依赖后运行 `prepare_data.py`。数据准备与校验方法见[数据集说明](docs/数据集.md)。
+Hugging Face 与百度网盘提供相同的处理后数据集，选择任一来源下载即可。将完整的 `processed/` 目录放入 `data/processed/`，包含 `metadata.json`、`index.npy` 及引用的全部 `raw/` 文件。数据准备与校验方法见[数据集说明](docs/数据集.md)。
 
 | 划分 | 图像数量 | 类别数量 |
 |---|---:|---:|
@@ -102,16 +102,32 @@ cd GlyphWeave
 
 ### Apple Silicon / MPS
 
-创建环境、安装依赖、检查设备和数据，然后开始训练。
+`requirements.txt` 中的固定依赖要求以下环境：
+
+| 项目 | 要求 |
+|---|---|
+| 硬件 / 架构 | Apple Silicon，原生 `arm64` Python |
+| 操作系统 | macOS 14 或更高版本 |
+| Python | 标准 CPython 3.12–3.14；torchvision 排除 Python 3.14.1 |
+| 训练后端 / 精度 | MPS / FP32 |
+
+上述要求依据已发布的 [PyTorch wheel](https://pypi.org/project/torch/2.14.1/#files)、[torchvision 元信息](https://pypi.org/project/torchvision/0.29.1/)与 [NumPy 元信息](https://pypi.org/project/numpy/2.5.3/)。使用符合上述版本的原生解释器，macOS 的 Python 安装方法见 [Python 官方文档](https://docs.python.org/3/using/mac.html)。
+
+以下命令使用 Python 3.14。先检查操作系统、Python 版本及架构（`arm64`），再创建环境、安装依赖，并在训练前验证 MPS 与数据集：
 
 ```bash
-python3 -m venv .venv
+sw_vers -productVersion
+python3.14 --version
+python3.14 -c "import platform; print(platform.machine())"
+python3.14 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python check_environment.py --device auto
+.venv/bin/python -m pip check
+.venv/bin/python check_environment.py --device mps
 .venv/bin/python train.py --config configs/mac.yaml
 ```
 
-使用原始数据文件时，请在环境检查前运行 `.venv/bin/python prepare_data.py`。MPS 训练使用 FP32。
+使用 Python 3.12 或 3.13 时，将 `python3.14` 替换为相应的解释器命令。使用原始数据文件时，请在环境检查前运行 `.venv/bin/python prepare_data.py`。检查结果应报告 `device: mps` 与 `gpu_kernel_check: passed`。
 
 ### Windows / NVIDIA CUDA
 
@@ -247,6 +263,7 @@ GlyphWeave/
 ├── app.py
 ├── README.md
 ├── README.zh-CN.md
+├── LICENSE
 └── AGENTS.md
 ```
 
@@ -260,6 +277,10 @@ python3 scripts/check_readme_sync.py
 ```
 
 CUDA 专项测试需要 NVIDIA GPU。开发与发布流程见 [GitHub 发布指南](docs/GitHub发布.md)。
+
+## 许可证
+
+源码与项目原创文档采用 [MIT 许可证](LICENSE)，再分发时需保留版权与许可声明。数据集文件及单独发布的模型检查点不属于该源码许可证的授权范围。数据集继续遵循各上游条款，包括 [CASIA 使用协议](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html)；第三方依赖保留各自许可证。
 
 ## 参考资料
 

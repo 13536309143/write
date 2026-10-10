@@ -1,4 +1,5 @@
-# Reference versions used on the Mac. For Windows CUDA see requirements-windows.txt and docs/Windows训练.md.
+# Apple Silicon (arm64), macOS 14+, standard CPython 3.12-3.14 (excluding 3.14.1).
+# For Windows CUDA see requirements-windows.txt and docs/Windows训练.md.
 torch==2.14.1
 torchvision==0.29.1
 numpy==2.5.3
