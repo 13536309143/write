@@ -6,7 +6,7 @@ English | [简体中文](README.zh-CN.md)
 
 GlyphWeave classifies **7,185 Chinese characters, 26 uppercase letters, 26 lowercase letters, and 10 digits: 7,247 classes in total**. It combines stroke gradients, hierarchical convolution, spatial attention, multi-scale fusion, and a cosine classifier. All learnable parameters are randomly initialized.
 
-The project implements an independent combination of established architectural components. The first single-seed experiment is complete: **95.95% Top-1, 99.65% Top-5, and 97.64% macro Top-1** on the complete 870,895-image test set. See [Experimental results](#experiments) for the protocol, character groups, and limitations; no state-of-the-art claim is made.
+On the complete 870,895-image test set, GlyphWeave achieves **95.95% Top-1, 99.65% Top-5, and 97.64% macro Top-1**. See [Experimental results](#experiments) for the evaluation protocol and character-group analysis.
 
 ## Highlights
 
@@ -20,7 +20,7 @@ The project implements an independent combination of established architectural c
 
 ## Model architecture
 
-GlyphWeave combines *glyph*, meaning a character shape, with *weave*, reflecting the fusion of stroke details and spatial structure. Its Chinese name is **字织**. The current model implementation remains `HandwritingNet` in `handwriting/model.py`, with configuration identifier `handwriting_net`.
+GlyphWeave combines *glyph*, meaning a character shape, with *weave*, reflecting the fusion of stroke details and spatial structure. Its Chinese name is **字织**. The model is implemented as `HandwritingNet` in `handwriting/model.py`, with configuration identifier `handwriting_net`.
 
 The encoder uses residual depthwise convolution blocks with channel expansion and global response normalization (GRN), drawing on [ConvNeXt V2](https://github.com/facebookresearch/ConvNeXt-V2). Spatial attention operates on the final feature grid to model character structure at a manageable token count. Intermediate convolutional features, final convolutional features, and attention features are pooled and fused with learned weights.
 
@@ -42,19 +42,17 @@ flowchart TD
 | `mac.yaml` / `windows_cuda.yaml` | 128 × 128 | 7,820,044 | 40 / 80 / 160 / 320 | 2 / 2 / 6 / 2 | 2 |
 | `quality.yaml` | 160 × 160 | 14,053,588 | 48 / 96 / 192 / 384 | 2 / 3 / 8 / 3 | 3 |
 
-Parameter counts include the classification head. The larger configuration is an experimental option; improved accuracy must be established by measurement. See the [architecture notes](docs/网络设计.md) for module definitions and design rationale.
+Parameter counts include the classification head. `quality.yaml` provides a larger experimental configuration. See the [architecture notes](docs/网络设计.md) for module definitions and design rationale.
 
 <a id="dataset-downloads"></a>
 
 ## Data and downloads
 
-Dataset files and model checkpoints are distributed separately from the source repository. Model packages are available in v1.0.0; the prepared dataset download will be added after its separate upload.
-
-<!-- DATASET_RELEASE_LINKS: update both READMEs when real release URLs are available. -->
+Dataset files and model checkpoints are distributed separately from the source repository. The model packages are available in v1.0.0.
 
 | Artifact | Contents | Download | Version / SHA-256 |
 |---|---|---|---|
-| Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | **Pending upload** | Pending |
+| Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | **Not available** | — |
 | Inference model | EMA weights and experiment records | [Inference ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-inference.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 | Full training checkpoint | Original best checkpoint and experiment records | [Training ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-training.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 
@@ -66,7 +64,7 @@ Upstream sources:
 
 Dataset access and redistribution remain subject to the respective upstream terms, including the [CASIA agreement](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html).
 
-For a prepared release, extract the **entire** directory into `data/processed/`; the index alone is insufficient. Uploading the complete `processed/` directory is sufficient for training and evaluation; the original ZIP/GZ archives do not need to be uploaded again. The current directory is approximately 23 GiB, so GitHub Release distribution requires parts smaller than 2 GiB each or an external dataset host. [GitHub asset limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases). For source files, restore `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset packaging and integrity](docs/数据集.md).
+Place the complete prepared dataset in `data/processed/`, including `metadata.json`, `index.npy`, and all referenced `raw/` files. To prepare the dataset from source files, place them in `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset preparation and integrity](docs/数据集.md).
 
 | Split | Images | Classes |
 |---|---:|---:|
@@ -113,29 +111,17 @@ python3 -m venv .venv
 .venv/bin/python train.py --config configs/mac.yaml
 ```
 
-If only source files were downloaded, run `.venv/bin/python prepare_data.py` before the environment check. MPS training uses FP32. A `KeyboardInterrupt` during `import torch` means startup was cancelled before training began; rerun the command.
+If using source data files, run `.venv/bin/python prepare_data.py` before the environment check. MPS training uses FP32.
 
 ### Windows / NVIDIA CUDA
 
-**Reported training machine (hardware captured on 2026-10-09; the 80-epoch run is complete, but full runtime package versions were not recorded):**
+The installation below uses Python 3.14 and **PyTorch 2.11.0 + torchvision 0.26.0 with CUDA 12.8**. See the [official version combinations](https://pytorch.org/get-started/previous-versions/) and [installation selector](https://pytorch.org/get-started/locally/) for alternative environments.
 
-| Item | Reported value |
-|---|---|
-| Project directory | `E:\write` |
-| Python | 3.14.7, 64-bit |
-| GPU | NVIDIA GeForce RTX 4070 family; full model name is truncated in the supplied output |
-| VRAM | 8,188 MiB total; 5,209 MiB in use at capture time |
-| NVIDIA driver | 616.64 |
-| Local CUDA Toolkit (`nvcc`) | 13.4.92 |
-
-Use the existing standard Python 3.14 environment. The version command is `python --version`, with two hyphens. The installation below pins **PyTorch 2.11.0 + torchvision 0.26.0, CUDA 12.8**: this is an [official version pairing](https://pytorch.org/get-started/previous-versions/), and both the [torch](https://download.pytorch.org/whl/cu128/torch/) and [torchvision](https://download.pytorch.org/whl/cu128/torchvision/) indexes list Python 3.14 Windows wheels. This is a specific installation choice, not a claim to be the latest release.
-
-The CUDA Toolkit reported by `nvcc`, driver capability reported by `nvidia-smi`, and PyTorch's CUDA runtime are separate versions. A newer NVIDIA driver supports an older CUDA runtime through [backward compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/why-cuda-compatibility.html). Keep the installed Toolkit; this project uses prebuilt wheels and does not compile CUDA extensions. Do not change the package index to `cu134` just because the local Toolkit is 13.4. Use the [official installation selector](https://pytorch.org/get-started/locally/) if choosing another package combination.
+The PyTorch wheels include the CUDA runtime; this project does not require compiling CUDA extensions. The NVIDIA driver must support the selected runtime. See [CUDA compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/why-cuda-compatibility.html).
 
 In PowerShell, from the project directory, install without activating the environment:
 
 ```powershell
-cd E:\write
 python --version
 python -m venv .venv-win
 .\.venv-win\Scripts\python.exe -m pip install --upgrade pip
@@ -146,17 +132,17 @@ python -m venv .venv-win
 
 PyTorch is installed separately from `requirements-windows.txt`; the Mac `requirements.txt` is not the Windows installation recipe. Copy the entire prepared dataset into `data/processed/`. If using source files, run `.\.venv-win\Scripts\python.exe prepare_data.py` before checking the environment.
 
-Verify the full GPU name, installed runtime, actual CUDA computation, and dataset paths:
+Verify the GPU, PyTorch runtime, CUDA computation, and dataset paths:
 
 ```powershell
-nvidia-smi --query-gpu=name,memory.total,memory.used,driver_version --format=csv
+nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv
 .\.venv-win\Scripts\python.exe -c "import torch; print('torch:', torch.__version__); print('CUDA runtime:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available())"
 .\.venv-win\Scripts\python.exe check_environment.py --device cuda
 ```
 
-Expected package/runtime values are `2.11.0+cu128` and `12.8`; CUDA availability should be `True`, and the device check should report `gpu_kernel_check: passed`. Different numbers from the local Toolkit are expected. The supplied system output alone does not prove PyTorch can execute CUDA kernels.
+For this installation, the expected package/runtime values are `2.11.0+cu128` and `12.8`. CUDA availability should be `True`, and the device check should report `gpu_kernel_check: passed`.
 
-**Starting point for approximately 8 GB VRAM:** close unnecessary GPU applications first. At capture time only about 2.9 GiB remained free, so total VRAM is not the available training budget. Copy the default configuration for a separate experiment:
+**Configuration for approximately 8 GB VRAM:** copy the default configuration into a separate experiment file:
 
 ```powershell
 Copy-Item configs\windows_cuda.yaml configs\windows_8gb.yaml
@@ -170,7 +156,7 @@ batch_size: 8
 accumulation: 8
 ```
 
-Keep `precision: fp16` and `image_size: 128`; the effective batch remains 64. This is a conservative starting point, not a guarantee of fitting. If CUDA reports out-of-memory, reduce to `batch_size: 4` and `accumulation: 16` before a new run. Batch and accumulation changes cannot be applied while resuming an existing checkpoint.
+Keep `precision: fp16` and `image_size: 128`; the effective batch remains 64. Adjust the batch size to available VRAM. If CUDA reports out-of-memory, use `batch_size: 4` and `accumulation: 16` for a new run. Batch and accumulation settings must match when resuming a checkpoint.
 
 Run a short pipeline check in a separate output directory, then start training from random initialization:
 
@@ -266,14 +252,14 @@ GlyphWeave/
 
 `handwriting/` contains the model, dataset, preprocessing, runtime, and metrics. `configs/` defines reproducible runs. `docs/` contains architecture, platform, data, and experiment documentation. Datasets, environments, checkpoints, and local runs are excluded through `.gitignore`.
 
-English is the default README. The [Chinese README](README.zh-CN.md) must remain equivalent in content, structure, commands, links, and results. This policy is recorded in [AGENTS.md](AGENTS.md). Check documentation consistency and, with the prepared dataset installed, run the pipeline tests:
+Run the documentation and pipeline checks. Pipeline tests require the prepared dataset:
 
 ```bash
 python3 scripts/check_readme_sync.py
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-The documentation check compares structure and shared technical content, not translation quality. Pipeline checks and tiny-batch fitting demonstrate implementation behavior, not generalization. CUDA-specific tests require an NVIDIA GPU; skipped tests are not CUDA validation. See the [GitHub publishing checklist](docs/GitHub发布.md).
+CUDA-specific tests require an NVIDIA GPU. Development and publishing procedures are documented in the [GitHub publishing guide](docs/GitHub发布.md).
 
 ## References
 
@@ -284,13 +270,13 @@ The documentation check compares structure and shared technical content, not tra
 
 <a id="experiments"></a>
 
-## Experimental results — single experiment
+## Experimental results
 
-Version **v1.0.0** reports the default GlyphWeave model trained from scratch on Windows CUDA. This section contains one completed experiment with seed 42. The larger configuration, baselines, and ablations have not been evaluated and are not included as results.
+Version **v1.0.0** reports one training run of the default GlyphWeave model, trained from scratch on Windows CUDA with seed 42.
 
 ### Experimental setup
 
-| Item | Recorded value |
+| Item | Value |
 |---|---|
 | Configuration / initialization | `configs/windows_cuda.yaml` / random initialization, no pretrained weights |
 | Parameters / input / seed | 7,820,044 / 128 × 128 / 42 |
@@ -301,12 +287,12 @@ Version **v1.0.0** reports the default GlyphWeave model trained from scratch on 
 | Successful updates / skipped updates | 312,445 / 115 |
 | Model selection | Best EMA by validation macro Top-1; best epoch 80 |
 | Validation protocol | Fixed 72,470-image subset, 10 images per class |
-| Test protocol | Complete independent split: 870,895 images, 7,247 classes; `subset: false`, `verification_only: false` |
-| Reported hardware | RTX 4070 family, 8,188 MiB VRAM; full GPU variant, CPU, RAM, and measured timing not recorded |
-| Reported software | Windows, 64-bit Python 3.14.7; actual PyTorch and CUDA runtime versions not recorded in the experiment files |
+| Test protocol | Complete independent split: 870,895 images, 7,247 classes |
+| Hardware | NVIDIA GeForce RTX 4070 family, 8,188 MiB VRAM |
+| Platform | Windows, 64-bit Python 3.14.7 |
 | Dataset index SHA-256 | `ab95cdd227094c2e2b221ff958adce0d42b6b30a76089473316cbf4ec6b380b3` |
 
-The original files do not record the training code commit or the test evaluation checkpoint identity. Release manifests identify the distributed files by hash; they do not reconstruct missing historical provenance. [Configuration](docs/experiments/windows_cuda_v1/config.json), [training history](docs/experiments/windows_cuda_v1/history.jsonl), and [test report](docs/experiments/windows_cuda_v1/test_metrics.json) are preserved for inspection.
+The [configuration](docs/experiments/windows_cuda_v1/config.json), [training history](docs/experiments/windows_cuda_v1/history.jsonl), and [test report](docs/experiments/windows_cuda_v1/test_metrics.json) accompany the experiment. File hashes and provenance details are included in the [release notes](docs/releases/v1.0.0.md).
 
 ### Validation and full-test results
 
@@ -324,7 +310,7 @@ The original files do not record the training code commit or the test evaluation
 | Uppercase | 36,590 | **83.72** | `O / 0`, `I / 1`, `C / c` |
 | Lowercase | 32,302 | **76.32** | `l / 1`, `c / C`, `s / S` |
 
-Group Top-5 values were not recorded by the evaluator. The overall validation/test gap should not be interpreted directly as overfitting: letters and digits account for 0.86% of the validation subset but 14.79% of the test set. Macro Top-1 averages the 7,247 character classes, not the four groups equally. Small validation group sizes and different within-group character frequencies also limit direct group comparisons.
+Letters and digits account for 0.86% of the validation subset and 14.79% of the test set, so the overall metrics reflect different character-group proportions. Macro Top-1 is the mean accuracy across the 7,247 character classes. Validation and test group metrics also differ in sample counts and within-group class frequencies.
 
 ### Training dynamics
 
@@ -339,10 +325,10 @@ Validation Top-1 reached 88.12% at epoch 3, 95.48% at epoch 8, 96.68% at epoch 2
 | `0 → O` | 1,258 |
 | `I → 1` | 803 |
 
-These four directional confusions account for 15.14% of all Top-1 errors. Lowercase letters remain the weakest group. Future experiments should inspect glyph normalization and compare character-group sampling, standard baselines, and individual architectural components using fixed validation protocols. No baseline superiority, ablation benefit, multi-seed robustness, latency, calibrated confidence, or external-photo accuracy is claimed by this release.
+These four directional confusions account for 15.14% of all Top-1 errors. Lowercase letters are the weakest group, with frequent ambiguities between letters and digits. The evaluation covers a single seed on isolated-character datasets; it does not measure baseline comparisons, ablations, multi-seed variability, inference latency, or accuracy on external photographs.
 
 ### Learning curves and confusion overview
 
 ![GlyphWeave single-experiment learning curves and complete-test analysis](docs/assets/windows-cuda-v1-overview.png)
 
-[Vector figure](docs/assets/windows-cuda-v1-overview.svg) · [Machine-readable experiment summary](docs/experiments/windows_cuda_v1/experiment-summary.json). Qualitative image examples and additional experiments can be added after they are completed; both READMEs must be updated together.
+[Vector figure](docs/assets/windows-cuda-v1-overview.svg) · [Machine-readable experiment summary](docs/experiments/windows_cuda_v1/experiment-summary.json).
