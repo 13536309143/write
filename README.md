@@ -117,7 +117,7 @@ If only source files were downloaded, run `.venv/bin/python prepare_data.py` bef
 
 ### Windows / NVIDIA CUDA
 
-**Reported target machine (2026-10-09; installation and training are not yet verified on this machine):**
+**Reported training machine (hardware captured on 2026-10-09; the 80-epoch run is complete, but full runtime package versions were not recorded):**
 
 | Item | Reported value |
 |---|---|
