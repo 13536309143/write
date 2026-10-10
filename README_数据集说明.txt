@@ -38,5 +38,10 @@ EMNIST 原始 IDX 图像需要转置一次，已在数据加载器中处理。
 metadata.json 保存类别映射、划分统计与索引校验值；index.npy 为样本内存映射索引。
 原始 ZIP/GZ 文件保留，训练操作不会修改它们。
 
+发布时仅上传完整 data/processed/ 就足够训练和评估，必须包括 metadata.json、index.npy 和全部 raw/ 文件。
+CASIA-HWDB/EMNIST 原始压缩包可以作为本地备份，无需重复上传。
+processed/raw/ 是实际运行需要的文件，不能当作重复缓存删除。
+单张图片识别只需要源码、依赖和 Release 模型，不需要数据集。
+
 自主神经网络、训练与识别操作见 README.md（英文）与 README.zh-CN.md（中文）；两份 README 后续同步维护。
 数据发布与打包要求见 docs/数据集.md；详细结构见 docs/网络设计.md。

@@ -7,3 +7,6 @@
 *.png binary
 *.jpg binary
 *.jpeg binary
+# Preserve original experiment bytes so published hashes remain meaningful.
+docs/experiments/windows_cuda_v1/*.json -text whitespace=cr-at-eol
+docs/experiments/windows_cuda_v1/*.jsonl -text whitespace=cr-at-eol

@@ -1,0 +1,782 @@
+{
+  "samples": 870895,
+  "classes_evaluated": 7247,
+  "loss": 0.16788156473679539,
+  "top1": 0.9595473621963612,
+  "top5": 0.9964932626780496,
+  "macro_top1": 0.9763616653485744,
+  "groups": {
+    "digits": {
+      "samples": 59934,
+      "top1": 0.9371475289485101
+    },
+    "uppercase": {
+      "samples": 36590,
+      "top1": 0.8371959551790107
+    },
+    "lowercase": {
+      "samples": 32302,
+      "top1": 0.7632344746455327
+    },
+    "chinese": {
+      "samples": 742069,
+      "top1": 0.9759348524193842
+    }
+  },
+  "worst_classes": [
+    {
+      "character": "l",
+      "samples": 2736,
+      "accuracy": 0.2507309941520468
+    },
+    {
+      "character": "o",
+      "samples": 668,
+      "accuracy": 0.26047904191616766
+    },
+    {
+      "character": "s",
+      "samples": 639,
+      "accuracy": 0.3145539906103286
+    },
+    {
+      "character": "c",
+      "samples": 633,
+      "accuracy": 0.35545023696682465
+    },
+    {
+      "character": "u",
+      "samples": 684,
+      "accuracy": 0.4473684210526316
+    },
+    {
+      "character": "v",
+      "samples": 670,
+      "accuracy": 0.46567164179104475
+    },
+    {
+      "character": "k",
+      "samples": 668,
+      "accuracy": 0.5044910179640718
+    },
+    {
+      "character": "p",
+      "samples": 570,
+      "accuracy": 0.5070175438596491
+    },
+    {
+      "character": "m",
+      "samples": 667,
+      "accuracy": 0.5097451274362819
+    },
+    {
+      "character": "I",
+      "samples": 2250,
+      "accuracy": 0.5435555555555556
+    },
+    {
+      "character": "囗",
+      "samples": 60,
+      "accuracy": 0.55
+    },
+    {
+      "character": "O",
+      "samples": 4358,
+      "accuracy": 0.5665442863698944
+    },
+    {
+      "character": "i",
+      "samples": 628,
+      "accuracy": 0.5732484076433121
+    },
+    {
+      "character": "f",
+      "samples": 602,
+      "accuracy": 0.6013289036544851
+    },
+    {
+      "character": "已",
+      "samples": 144,
+      "accuracy": 0.6041666666666666
+    },
+    {
+      "character": "q",
+      "samples": 705,
+      "accuracy": 0.6127659574468085
+    },
+    {
+      "character": "z",
+      "samples": 652,
+      "accuracy": 0.6549079754601227
+    },
+    {
+      "character": "汆",
+      "samples": 59,
+      "accuracy": 0.6610169491525424
+    },
+    {
+      "character": "y",
+      "samples": 583,
+      "accuracy": 0.6775300171526587
+    },
+    {
+      "character": "x",
+      "samples": 672,
+      "accuracy": 0.6949404761904762
+    },
+    {
+      "character": "V",
+      "samples": 998,
+      "accuracy": 0.7224448897795591
+    },
+    {
+      "character": "叼",
+      "samples": 137,
+      "accuracy": 0.7226277372262774
+    },
+    {
+      "character": "孑",
+      "samples": 59,
+      "accuracy": 0.7288135593220338
+    },
+    {
+      "character": "Z",
+      "samples": 665,
+      "accuracy": 0.7293233082706767
+    },
+    {
+      "character": "w",
+      "samples": 668,
+      "accuracy": 0.7305389221556886
+    },
+    {
+      "character": "g",
+      "samples": 791,
+      "accuracy": 0.7319848293299621
+    },
+    {
+      "character": "皙",
+      "samples": 60,
+      "accuracy": 0.7333333333333333
+    },
+    {
+      "character": "曰",
+      "samples": 145,
+      "accuracy": 0.7379310344827587
+    },
+    {
+      "character": "夭",
+      "samples": 84,
+      "accuracy": 0.7380952380952381
+    },
+    {
+      "character": "口",
+      "samples": 143,
+      "accuracy": 0.7412587412587412
+    },
+    {
+      "character": "汩",
+      "samples": 59,
+      "accuracy": 0.7457627118644068
+    },
+    {
+      "character": "0",
+      "samples": 5980,
+      "accuracy": 0.7464882943143812
+    },
+    {
+      "character": "X",
+      "samples": 633,
+      "accuracy": 0.7519747235387045
+    },
+    {
+      "character": "Y",
+      "samples": 1000,
+      "accuracy": 0.76
+    },
+    {
+      "character": "睛",
+      "samples": 144,
+      "accuracy": 0.7638888888888888
+    },
+    {
+      "character": "攵",
+      "samples": 60,
+      "accuracy": 0.7666666666666667
+    },
+    {
+      "character": "瘐",
+      "samples": 58,
+      "accuracy": 0.7758620689655172
+    },
+    {
+      "character": "冼",
+      "samples": 59,
+      "accuracy": 0.7796610169491526
+    },
+    {
+      "character": "汨",
+      "samples": 59,
+      "accuracy": 0.7796610169491526
+    },
+    {
+      "character": "日",
+      "samples": 143,
+      "accuracy": 0.7832167832167832
+    },
+    {
+      "character": "扌",
+      "samples": 60,
+      "accuracy": 0.7833333333333333
+    },
+    {
+      "character": "诏",
+      "samples": 56,
+      "accuracy": 0.7857142857142857
+    },
+    {
+      "character": "谁",
+      "samples": 143,
+      "accuracy": 0.7902097902097902
+    },
+    {
+      "character": "W",
+      "samples": 1007,
+      "accuracy": 0.791459781529295
+    },
+    {
+      "character": "话",
+      "samples": 142,
+      "accuracy": 0.795774647887324
+    },
+    {
+      "character": "谩",
+      "samples": 143,
+      "accuracy": 0.7972027972027972
+    },
+    {
+      "character": "千",
+      "samples": 143,
+      "accuracy": 0.7972027972027972
+    },
+    {
+      "character": "j",
+      "samples": 519,
+      "accuracy": 0.7976878612716763
+    },
+    {
+      "character": "工",
+      "samples": 141,
+      "accuracy": 0.8014184397163121
+    },
+    {
+      "character": "计",
+      "samples": 142,
+      "accuracy": 0.8028169014084507
+    }
+  ],
+  "confusions": [
+    {
+      "actual": "O",
+      "predicted": "0",
+      "count": 1672
+    },
+    {
+      "actual": "l",
+      "predicted": "1",
+      "count": 1600
+    },
+    {
+      "actual": "0",
+      "predicted": "O",
+      "count": 1258
+    },
+    {
+      "actual": "I",
+      "predicted": "1",
+      "count": 803
+    },
+    {
+      "actual": "s",
+      "predicted": "S",
+      "count": 415
+    },
+    {
+      "actual": "c",
+      "predicted": "C",
+      "count": 399
+    },
+    {
+      "actual": "1",
+      "predicted": "I",
+      "count": 388
+    },
+    {
+      "actual": "1",
+      "predicted": "l",
+      "count": 370
+    },
+    {
+      "actual": "u",
+      "predicted": "U",
+      "count": 350
+    },
+    {
+      "actual": "m",
+      "predicted": "M",
+      "count": 324
+    },
+    {
+      "actual": "v",
+      "predicted": "V",
+      "count": 316
+    },
+    {
+      "actual": "k",
+      "predicted": "K",
+      "count": 314
+    },
+    {
+      "actual": "l",
+      "predicted": "I",
+      "count": 308
+    },
+    {
+      "actual": "5",
+      "predicted": "S",
+      "count": 280
+    },
+    {
+      "actual": "o",
+      "predicted": "O",
+      "count": 276
+    },
+    {
+      "actual": "p",
+      "predicted": "P",
+      "count": 259
+    },
+    {
+      "actual": "f",
+      "predicted": "F",
+      "count": 215
+    },
+    {
+      "actual": "V",
+      "predicted": "v",
+      "count": 204
+    },
+    {
+      "actual": "C",
+      "predicted": "c",
+      "count": 199
+    },
+    {
+      "actual": "o",
+      "predicted": "0",
+      "count": 197
+    },
+    {
+      "actual": "W",
+      "predicted": "w",
+      "count": 197
+    },
+    {
+      "actual": "U",
+      "predicted": "u",
+      "count": 196
+    },
+    {
+      "actual": "q",
+      "predicted": "9",
+      "count": 193
+    },
+    {
+      "actual": "F",
+      "predicted": "f",
+      "count": 190
+    },
+    {
+      "actual": "P",
+      "predicted": "p",
+      "count": 185
+    },
+    {
+      "actual": "x",
+      "predicted": "X",
+      "count": 184
+    },
+    {
+      "actual": "w",
+      "predicted": "W",
+      "count": 175
+    },
+    {
+      "actual": "O",
+      "predicted": "o",
+      "count": 174
+    },
+    {
+      "actual": "S",
+      "predicted": "s",
+      "count": 166
+    },
+    {
+      "actual": "M",
+      "predicted": "m",
+      "count": 161
+    },
+    {
+      "actual": "I",
+      "predicted": "l",
+      "count": 145
+    },
+    {
+      "actual": "y",
+      "predicted": "Y",
+      "count": 139
+    },
+    {
+      "actual": "0",
+      "predicted": "o",
+      "count": 138
+    },
+    {
+      "actual": "X",
+      "predicted": "x",
+      "count": 136
+    },
+    {
+      "actual": "S",
+      "predicted": "5",
+      "count": 132
+    },
+    {
+      "actual": "z",
+      "predicted": "Z",
+      "count": 130
+    },
+    {
+      "actual": "9",
+      "predicted": "q",
+      "count": 126
+    },
+    {
+      "actual": "Z",
+      "predicted": "z",
+      "count": 123
+    },
+    {
+      "actual": "2",
+      "predicted": "z",
+      "count": 118
+    },
+    {
+      "actual": "g",
+      "predicted": "9",
+      "count": 118
+    },
+    {
+      "actual": "Y",
+      "predicted": "y",
+      "count": 115
+    },
+    {
+      "actual": "i",
+      "predicted": "I",
+      "count": 113
+    },
+    {
+      "actual": "9",
+      "predicted": "g",
+      "count": 105
+    },
+    {
+      "actual": "6",
+      "predicted": "b",
+      "count": 88
+    },
+    {
+      "actual": "i",
+      "predicted": "1",
+      "count": 87
+    },
+    {
+      "actual": "2",
+      "predicted": "Z",
+      "count": 85
+    },
+    {
+      "actual": "1",
+      "predicted": "丨",
+      "count": 83
+    },
+    {
+      "actual": "t",
+      "predicted": "T",
+      "count": 78
+    },
+    {
+      "actual": "T",
+      "predicted": "t",
+      "count": 76
+    },
+    {
+      "actual": "z",
+      "predicted": "2",
+      "count": 73
+    },
+    {
+      "actual": "K",
+      "predicted": "k",
+      "count": 72
+    },
+    {
+      "actual": "n",
+      "predicted": "N",
+      "count": 66
+    },
+    {
+      "actual": "0",
+      "predicted": "D",
+      "count": 66
+    },
+    {
+      "actual": "Y",
+      "predicted": "丫",
+      "count": 59
+    },
+    {
+      "actual": "j",
+      "predicted": "J",
+      "count": 58
+    },
+    {
+      "actual": "l",
+      "predicted": "L",
+      "count": 57
+    },
+    {
+      "actual": "V",
+      "predicted": "U",
+      "count": 52
+    },
+    {
+      "actual": "J",
+      "predicted": "j",
+      "count": 49
+    },
+    {
+      "actual": "b",
+      "predicted": "6",
+      "count": 44
+    },
+    {
+      "actual": "Z",
+      "predicted": "2",
+      "count": 43
+    },
+    {
+      "actual": "g",
+      "predicted": "q",
+      "count": 39
+    },
+    {
+      "actual": "l",
+      "predicted": "丨",
+      "count": 38
+    },
+    {
+      "actual": "1",
+      "predicted": "i",
+      "count": 36
+    },
+    {
+      "actual": "4",
+      "predicted": "Y",
+      "count": 35
+    },
+    {
+      "actual": "已",
+      "predicted": "己",
+      "count": 34
+    },
+    {
+      "actual": "睛",
+      "predicted": "晴",
+      "count": 34
+    },
+    {
+      "actual": "叼",
+      "predicted": "叨",
+      "count": 32
+    },
+    {
+      "actual": "曰",
+      "predicted": "日",
+      "count": 32
+    },
+    {
+      "actual": "J",
+      "predicted": "丁",
+      "count": 32
+    },
+    {
+      "actual": "y",
+      "predicted": "4",
+      "count": 32
+    },
+    {
+      "actual": "r",
+      "predicted": "R",
+      "count": 30
+    },
+    {
+      "actual": "Y",
+      "predicted": "4",
+      "count": 29
+    },
+    {
+      "actual": "千",
+      "predicted": "干",
+      "count": 27
+    },
+    {
+      "actual": "h",
+      "predicted": "n",
+      "count": 26
+    },
+    {
+      "actual": "囗",
+      "predicted": "口",
+      "count": 26
+    },
+    {
+      "actual": "I",
+      "predicted": "i",
+      "count": 26
+    },
+    {
+      "actual": "3",
+      "predicted": "了",
+      "count": 25
+    },
+    {
+      "actual": "q",
+      "predicted": "g",
+      "count": 25
+    },
+    {
+      "actual": "a",
+      "predicted": "A",
+      "count": 25
+    },
+    {
+      "actual": "C",
+      "predicted": "e",
+      "count": 25
+    },
+    {
+      "actual": "4",
+      "predicted": "y",
+      "count": 25
+    },
+    {
+      "actual": "v",
+      "predicted": "U",
+      "count": 24
+    },
+    {
+      "actual": "谩",
+      "predicted": "漫",
+      "count": 23
+    },
+    {
+      "actual": "计",
+      "predicted": "汁",
+      "count": 23
+    },
+    {
+      "actual": "6",
+      "predicted": "G",
+      "count": 23
+    },
+    {
+      "actual": "诲",
+      "predicted": "海",
+      "count": 23
+    },
+    {
+      "actual": "口",
+      "predicted": "囗",
+      "count": 22
+    },
+    {
+      "actual": "呜",
+      "predicted": "鸣",
+      "count": 22
+    },
+    {
+      "actual": "夭",
+      "predicted": "天",
+      "count": 21
+    },
+    {
+      "actual": "已",
+      "predicted": "巳",
+      "count": 21
+    },
+    {
+      "actual": "涌",
+      "predicted": "诵",
+      "count": 21
+    },
+    {
+      "actual": "诸",
+      "predicted": "渚",
+      "count": 21
+    },
+    {
+      "actual": "话",
+      "predicted": "活",
+      "count": 21
+    },
+    {
+      "actual": "日",
+      "predicted": "曰",
+      "count": 21
+    },
+    {
+      "actual": "U",
+      "predicted": "V",
+      "count": 21
+    },
+    {
+      "actual": "O",
+      "predicted": "D",
+      "count": 21
+    },
+    {
+      "actual": "e",
+      "predicted": "E",
+      "count": 21
+    },
+    {
+      "actual": "q",
+      "predicted": "Q",
+      "count": 20
+    },
+    {
+      "actual": "I",
+      "predicted": "工",
+      "count": 20
+    },
+    {
+      "actual": "j",
+      "predicted": "i",
+      "count": 20
+    }
+  ],
+  "subset": false,
+  "verification_only": false
+}

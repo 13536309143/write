@@ -6,7 +6,7 @@ English | [简体中文](README.zh-CN.md)
 
 GlyphWeave classifies **7,185 Chinese characters, 26 uppercase letters, 26 lowercase letters, and 10 digits: 7,247 classes in total**. It combines stroke gradients, hierarchical convolution, spatial attention, multi-scale fusion, and a cosine classifier. All learnable parameters are randomly initialized.
 
-The project implements an independent combination of established architectural components. Complete benchmark experiments are pending; no state-of-the-art claim is made. Reserved tables and figures appear in [Experimental results](#experiments).
+The project implements an independent combination of established architectural components. The first single-seed experiment is complete: **95.95% Top-1, 99.65% Top-5, and 97.64% macro Top-1** on the complete 870,895-image test set. See [Experimental results](#experiments) for the protocol, character groups, and limitations; no state-of-the-art claim is made.
 
 ## Highlights
 
@@ -48,15 +48,15 @@ Parameter counts include the classification head. The larger configuration is an
 
 ## Data and downloads
 
-Dataset files and model checkpoints are distributed separately from this source repository. The release links below will be filled in after the corresponding artifacts are uploaded.
+Dataset files and model checkpoints are distributed separately from the source repository. Model packages are available in v1.0.0; the prepared dataset download will be added after its separate upload.
 
 <!-- DATASET_RELEASE_LINKS: update both READMEs when real release URLs are available. -->
 
 | Artifact | Contents | Download | Version / SHA-256 |
 |---|---|---|---|
 | Prepared dataset | `metadata.json`, `index.npy`, and all referenced `raw/` files | **Pending upload** | Pending |
-| Source data | CASIA-HWDB 1.0–1.2 and EMNIST ByClass files | **Pending upload** | Pending |
-| Trained model | Checkpoint, configuration, and evaluation report | **Pending experiments** | Pending |
+| Inference model | EMA weights and experiment records | [Inference ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-inference.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
+| Full training checkpoint | Original best checkpoint and experiment records | [Training ZIP](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/glyphweave-v1.0.0-training.zip) | v1.0.0 / [SHA-256](https://github.com/13536309143/GlyphWeave/releases/download/v1.0.0/SHA256SUMS.txt) |
 
 Upstream sources:
 
@@ -66,7 +66,7 @@ Upstream sources:
 
 Dataset access and redistribution remain subject to the respective upstream terms, including the [CASIA agreement](https://nlpr.ia.ac.cn/databases/handwriting/Application_form.html).
 
-For a prepared release, extract the **entire** directory into `data/processed/`; the index alone is insufficient. For source files, restore `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset packaging and integrity](docs/数据集.md).
+For a prepared release, extract the **entire** directory into `data/processed/`; the index alone is insufficient. Uploading the complete `processed/` directory is sufficient for training and evaluation; the original ZIP/GZ archives do not need to be uploaded again. The current directory is approximately 23 GiB, so GitHub Release distribution requires parts smaller than 2 GiB each or an external dataset host. [GitHub asset limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases). For source files, restore `data/CASIA-HWDB/` and `data/EMNIST/`, then run `prepare_data.py` after installing dependencies. See [dataset packaging and integrity](docs/数据集.md).
 
 | Split | Images | Classes |
 |---|---:|---:|
@@ -76,6 +76,21 @@ For a prepared release, extract the **entire** directory into `data/processed/`;
 
 CASIA retains the official test set and holds out validation writers from the official training set; writers do not overlap across splits. EMNIST retains its official test set and uses class-stratified training/validation sampling; writer IDs are unavailable, so writer separation cannot be established for those two splits. Preparation removes 135 zero-size records and 1 blank image, excludes non-target symbols, and applies one transpose to EMNIST images during loading.
 
+<a id="released-model"></a>
+
+## Released model
+
+The [v1.0.0 release](https://github.com/13536309143/GlyphWeave/releases/tag/v1.0.0) provides an inference package containing the selected EMA weights and a separate full training checkpoint package. Both include the configuration, class mapping, history, test report, figures, and manifest; verify `SHA256SUMS.txt` before loading a download.
+
+For recognition, download and extract `glyphweave-v1.0.0-inference.zip` into the project root after installing dependencies. The dataset is **not required for single-image inference**.
+
+```bash
+.venv/bin/python predict.py path/to/glyph.png --checkpoint glyphweave-v1.0.0-inference/best.pt
+.venv/bin/python app.py --checkpoint glyphweave-v1.0.0-inference/best.pt
+```
+
+On Windows, use `.\.venv-win\Scripts\python.exe` in place of `.venv/bin/python`. The inference checkpoint cannot resume training. The full checkpoint preserves the original optimizer and scheduler state, but the 80-epoch schedule is already complete; extending it requires a new experiment rather than changing `epochs` during recovery. Package details are documented in the [release notes](docs/releases/v1.0.0.md).
+
 <a id="quick-start"></a>
 
 ## Quick start
@@ -83,8 +98,8 @@ CASIA retains the official test set and holds out validation writers from the of
 Clone the repository and download the dataset described above before training.
 
 ```bash
-git clone https://github.com/13536309143/write.git
-cd write
+git clone https://github.com/13536309143/GlyphWeave.git
+cd GlyphWeave
 ```
 
 ### Apple Silicon / MPS
@@ -231,7 +246,7 @@ Inputs should contain a single clearly cropped character. Whole lines, documents
 ## Repository layout and verification
 
 ```text
-write/
+GlyphWeave/
 ├── handwriting/
 ├── configs/
 ├── docs/
@@ -269,55 +284,65 @@ The documentation check compares structure and shared technical content, not tra
 
 <a id="experiments"></a>
 
-## Experimental results — reserved
+## Experimental results — single experiment
 
-**Complete experiments are pending.** Dashes denote unmeasured values. Interim validation observations are recorded separately in the [experiment log](docs/实验记录.md); they are not full-test results. Use the [experiment report template](docs/实验报告模板.md) when filling this section, and update both READMEs together.
+Version **v1.0.0** reports the default GlyphWeave model trained from scratch on Windows CUDA. This section contains one completed experiment with seed 42. The larger configuration, baselines, and ablations have not been evaluated and are not included as results.
 
 ### Experimental setup
 
 | Item | Recorded value |
 |---|---|
-| Code commit / dataset release / index SHA-256 | Pending |
-| OS / Python / PyTorch / CUDA / driver | Pending |
-| GPU / VRAM / CPU / RAM | Pending |
-| Configuration / seeds / successful updates / sampling budget | Pending |
-| Checkpoint selection / evaluation split / image count | Pending |
+| Configuration / initialization | `configs/windows_cuda.yaml` / random initialization, no pretrained weights |
+| Parameters / input / seed | 7,820,044 / 128 × 128 / 42 |
+| Precision / effective batch | FP16 AMP / 64 = 16 × 4 accumulation steps |
+| Optimizer / learning rate / weight decay | AdamW / 0.0005 / 0.05 |
+| Schedule / EMA | 2 warmup epochs, cosine decay / 0.999 |
+| Completed budget | 80 epochs × 250,000 sampled images = 20,000,000 draws with replacement |
+| Successful updates / skipped updates | 312,445 / 115 |
+| Model selection | Best EMA by validation macro Top-1; best epoch 80 |
+| Validation protocol | Fixed 72,470-image subset, 10 images per class |
+| Test protocol | Complete independent split: 870,895 images, 7,247 classes; `subset: false`, `verification_only: false` |
+| Reported hardware | RTX 4070 family, 8,188 MiB VRAM; full GPU variant, CPU, RAM, and measured timing not recorded |
+| Reported software | Windows, 64-bit Python 3.14.7; actual PyTorch and CUDA runtime versions not recorded in the experiment files |
+| Dataset index SHA-256 | `ab95cdd227094c2e2b221ff958adce0d42b6b30a76089473316cbf4ec6b380b3` |
 
-### Full-test results
+The original files do not record the training code commit or the test evaluation checkpoint identity. Release manifests identify the distributed files by hash; they do not reconstruct missing historical provenance. [Configuration](docs/experiments/windows_cuda_v1/config.json), [training history](docs/experiments/windows_cuda_v1/history.jsonl), and [test report](docs/experiments/windows_cuda_v1/test_metrics.json) are preserved for inspection.
 
-| Model | Parameters | Top-1 (%) | Top-5 (%) | Macro Top-1 (%) | Latency (ms/image) |
-|---|---:|---:|---:|---:|---:|
-| GlyphWeave default | 7,820,044 | — | — | — | — |
-| GlyphWeave larger | 14,053,588 | — | — | — | — |
-| Matched-budget baseline | — | — | — | — | — |
+### Validation and full-test results
 
-### Character groups
+| Split | Images | Top-1 (%) | Top-5 (%) | Macro Top-1 (%) |
+|---|---:|---:|---:|---:|
+| Validation subset, best epoch 80 | 72,470 | 97.66 | 99.70 | 97.66 |
+| Complete independent test | 870,895 | **95.95** | **99.65** | **97.64** |
 
-| Group | Test images | Top-1 (%) | Top-5 (%) | Main confusions |
-|---|---:|---:|---:|---|
-| Chinese | — | — | — | — |
-| Digits | — | — | — | — |
-| Uppercase | — | — | — | — |
-| Lowercase | — | — | — | — |
+### Character groups on the complete test set
 
-### Ablation studies
+| Group | Test images | Top-1 (%) | Representative confusions |
+|---|---:|---:|---|
+| Chinese | 742,069 | **97.59** | 汆 / 氽, 谭 / 潭 |
+| Digits | 59,934 | **93.71** | `0 / O`, `1 / I / l` |
+| Uppercase | 36,590 | **83.72** | `O / 0`, `I / 1`, `C / c` |
+| Lowercase | 32,302 | **76.32** | `l / 1`, `c / C`, `s / S` |
 
-The following comparisons are planned; not all variants are implemented. Hold data splits, training budget, seed policy, and evaluation protocol constant.
+Group Top-5 values were not recorded by the evaluator. The overall validation/test gap should not be interpreted directly as overfitting: letters and digits account for 0.86% of the validation subset but 14.79% of the test set. Macro Top-1 averages the 7,247 character classes, not the four groups equally. Small validation group sizes and different within-group character frequencies also limit direct group comparisons.
 
-| Variant | Top-1 (%) | Macro Top-1 (%) | Parameters | Interpretation |
-|---|---:|---:|---:|---|
-| Full model | — | — | — | — |
-| Without Sobel input | — | — | — | — |
-| Without spatial attention | — | — | — | — |
-| Without multi-scale fusion | — | — | — | — |
-| Linear classification head | — | — | — | — |
+### Training dynamics
 
-### Learning curves and qualitative examples
+Validation Top-1 reached 88.12% at epoch 3, 95.48% at epoch 8, 96.68% at epoch 20, 97.25% at epoch 50, and 97.66% at epoch 80. The last 10 epochs added approximately 0.095 percentage points, indicating diminishing gains. Final training loss was 0.7731 and validation loss was 0.1231; augmentation, label smoothing, and EMA make these losses unsuitable for direct train/validation gap comparison.
 
-Reserve this area for training/validation curves, confusion analysis, and correct/incorrect predictions. Include representative difficult characters and ambiguous letter/digit pairs. Report external-photo evaluation separately from the official test split. Timing measurements should specify hardware, precision, batch size, warmup, and device synchronization.
+### Error analysis and scope
 
-<!-- EXPERIMENT_FIGURES: enable after real files exist; synchronize both READMEs.
-![Learning curves](docs/assets/learning-curves.png)
-![Confusion analysis](docs/assets/confusion-analysis.png)
-![Prediction examples](docs/assets/prediction-examples.png)
--->
+| Actual → predicted | Misclassified test images |
+|---|---:|
+| `O → 0` | 1,672 |
+| `l → 1` | 1,600 |
+| `0 → O` | 1,258 |
+| `I → 1` | 803 |
+
+These four directional confusions account for 15.14% of all Top-1 errors. Lowercase letters remain the weakest group. Future experiments should inspect glyph normalization and compare character-group sampling, standard baselines, and individual architectural components using fixed validation protocols. No baseline superiority, ablation benefit, multi-seed robustness, latency, calibrated confidence, or external-photo accuracy is claimed by this release.
+
+### Learning curves and confusion overview
+
+![GlyphWeave single-experiment learning curves and complete-test analysis](docs/assets/windows-cuda-v1-overview.png)
+
+[Vector figure](docs/assets/windows-cuda-v1-overview.svg) · [Machine-readable experiment summary](docs/experiments/windows_cuda_v1/experiment-summary.json). Qualitative image examples and additional experiments can be added after they are completed; both READMEs must be updated together.

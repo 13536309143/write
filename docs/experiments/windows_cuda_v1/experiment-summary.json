@@ -1,0 +1,64 @@
+{
+  "epochs_completed": 80,
+  "best_validation_epoch": 80,
+  "best_validation": {
+    "samples": 72470,
+    "classes_evaluated": 7247,
+    "loss": 0.12305318950039938,
+    "top1": 0.9766248102663171,
+    "top5": 0.9969642610735476,
+    "macro_top1": 0.9766248102663172,
+    "groups": {
+      "digits": {
+        "samples": 100,
+        "top1": 0.92
+      },
+      "uppercase": {
+        "samples": 260,
+        "top1": 0.8769230769230769
+      },
+      "lowercase": {
+        "samples": 260,
+        "top1": 0.6346153846153846
+      },
+      "chinese": {
+        "samples": 71850,
+        "top1": 0.9783020180932498
+      }
+    }
+  },
+  "test": {
+    "samples": 870895,
+    "classes_evaluated": 7247,
+    "loss": 0.16788156473679539,
+    "top1": 0.9595473621963612,
+    "top5": 0.9964932626780496,
+    "macro_top1": 0.9763616653485744,
+    "groups": {
+      "digits": {
+        "samples": 59934,
+        "top1": 0.9371475289485101
+      },
+      "uppercase": {
+        "samples": 36590,
+        "top1": 0.8371959551790107
+      },
+      "lowercase": {
+        "samples": 32302,
+        "top1": 0.7632344746455327
+      },
+      "chinese": {
+        "samples": 742069,
+        "top1": 0.9759348524193842
+      }
+    },
+    "subset": false,
+    "verification_only": false
+  },
+  "source_files": [
+    "history.jsonl",
+    "config.json",
+    "test_metrics.json"
+  ],
+  "note": "The test report does not record checkpoint identity, evaluation command, package versions, or timing."
+}
